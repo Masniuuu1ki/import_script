@@ -1,5 +1,8 @@
-# import_script
-import script
+# Import script
+a simple script for importing vehicles using ox_target.
+
+# Preview:
+https://youtu.be/L8RMvG-bCcU
 
 # Depencies
 - ox_target
