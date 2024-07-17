@@ -1,2 +1,7 @@
 # import_script
-import 
+import script
+
+# Depencies
+- ox_target
+- ox_inventory
+- ox_lib
