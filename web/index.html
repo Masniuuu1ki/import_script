@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprowadzanie Pojazdów</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .tablet {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 900px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        .tablet h1 {
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 24px;
+        }
+        .vehicles, .locations {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: #2c2c2c;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            width: 250px;
+            position: relative;
+        }
+        .card img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+        }
+        .card .info {
+            padding: 10px;
+        }
+        .info p {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        .button-container {
+            text-align: center;
+        }
+        .button-container button {
+            background-color: #1c1c1c;
+            color: #ffffff;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            text-transform: uppercase;
+            transition: background-color 0.3s, transform 0.2s ease-out;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            outline: none;
+        }
+        .button-container button:hover {
+            background-color: #333333;
+            transform: translateY(-2px);
+        }
+        .button-container button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="tablet" id="vehicle-selection" style="display: none;">
+        <h1>Dostępne pojazdy</h1>
+        <div class="vehicles">
+        </div>
+        <div class="info">
+            <p>Odbierz pojazd i przewieź go do wybranej lokalizacji.</p>
+        </div>
+        <div class="button-container">
+            <button onclick="goToLocationSelection()">Wybierz</button>
+        </div>
+    </div>
+
+    <div class="tablet" id="location-selection" style="display: none;">
+        <h1>Wybierz lokalizację</h1>
+        <div class="locations">
+        </div>
+    </div>
+
+    <script>
+        let locations = {};
+
+        window.addEventListener('message', function(event) {
+            if (event.data.action === 'open') {
+                locations = event.data.locations;
+                displayVehicles();
+                document.getElementById('vehicle-selection').style.display = 'block';
+            }
+        });
+
+        function displayVehicles() {
+            const vehiclesContainer = document.querySelector('.vehicles');
+            vehiclesContainer.innerHTML = '';
+
+            const vehicles = [
+                {name: 'Pojazd 1', image: 'car1.png'},
+                {name: 'Pojazd 2', image: 'car2.png'},
+                {name: 'Pojazd 3', image: 'car3.png'}
+            ];
+
+            vehicles.forEach(vehicle => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.innerHTML = `
+                    <img src="${vehicle.image}" alt="${vehicle.name}">
+                    <div class="info">
+                        <p>${vehicle.name}</p>
+                    </div>
+                `;
+                vehiclesContainer.appendChild(card);
+            });
+        }
+
+        function goToLocationSelection() {
+            document.getElementById('vehicle-selection').style.display = 'none';
+            displayLocations();
+            document.getElementById('location-selection').style.display = 'block';
+        }
+
+        function displayLocations() {
+            const locationsContainer = document.querySelector('.locations');
+            locationsContainer.innerHTML = '';
+
+            const locationImages = {
+                "Grapseed": "location1.png",
+                "Los Santos": "location2.png",
+                "Paleto Bay": "location3.png"
+            };
+
+            for (const [category, data] of Object.entries(locations)) {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.setAttribute('onclick', `selectLocation('${category}')`);
+                card.innerHTML = `
+                    <img src="${locationImages[category]}" alt="${category}">
+                    <div class="info">
+                        <p>${category}</p>
+                        <p>${data.price}$</p>
+                    </div>
+                `;
+                locationsContainer.appendChild(card);
+            }
+        }
+
+        function selectLocation(location) {
+            document.getElementById('location-selection').style.display = 'none';
+            fetch(`https://import_script/selectLocation`, { // tu zmien na nazwe swojego skryptu
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ location: location })
+            }).then(response => response.json()).then(data => {
+                console.log('Lokalizacja wybrana:', data);
+                fetch(`https://import_script/hideCursor`, { // tu zmien na nazwe swojego skryptu
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+            }).catch(error => {
+                console.error('Błąd:', error);
+            });
+        }
+    </script>
+</body>
+</html>
